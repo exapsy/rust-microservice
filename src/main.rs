@@ -54,7 +54,7 @@ async fn adduser(app: &State<App>) -> RawJson<String> {
     let db = main_mongodb.client
         .as_ref()
         .expect("expected client reference")
-        .database("logifox-stores-users");
+        .database("my-service-db");
     let collection = db
         .collection("users");
 
