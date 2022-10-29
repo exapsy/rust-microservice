@@ -1,25 +1,37 @@
+use std::borrow::Borrow;
 use std::ptr::null;
 
 use async_trait::async_trait;
 use mongodb;
+use rocket::Request;
+use rocket::request::{Outcome, FromRequest};
 
 use crate::database::database;
 
 static DBTYPE: &'static str = "mongodb";
 
 pub struct Client {
-    uri: Option<String>,
-    client: Option<mongodb::Client>,
+    pub uri: Option<String>,
+    pub client: Option<mongodb::Client>,
 }
 
-pub fn new(mongo_uri: String) -> Client {
-    Client { uri: Some(mongo_uri.to_string()), client: None }
+#[rocket::async_trait]
+impl<'r> FromRequest<'r> for Client {
+    type Error = ();
+
+    async fn from_request(request: &'r Request<'_>) -> Outcome<Self, Self::Error> {
+        request.guard::<Client>().await
+    }
 }
 
-#[async_trait::async_trait]
+#[async_trait]
 impl database::Driver<mongodb::Client> for Client {
-    async fn connect(&mut self, host_uri: String) -> Result<(), database::ConnectionError> {
-        let mut client_options = mongodb::options::ClientOptions::parse(host_uri).await.expect("Failed to parse");
+    async fn connect(&mut self) -> Result<(), database::ConnectionError> {
+        let uri = self.uri.as_ref()
+            .expect("expected uri not to be empty");
+        let mut client_options = mongodb::options::ClientOptions::parse(uri)
+            .await
+            .expect("Failed to parse");
 
         let client = mongodb::Client::with_options(client_options)
             .expect("failed to register client");

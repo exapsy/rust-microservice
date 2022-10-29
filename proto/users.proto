@@ -1,8 +1,8 @@
 syntax = "proto3";
-package service;
+package users_service;
 
 message User {
-  string name = 1;
+  string username = 1;
 }
 
 message UserGetByIdRequest {
@@ -13,6 +13,6 @@ message UserGetByIdResponse {
   User user = 1;
 }
 
-service UserService {
+service UsersService {
   rpc GetById(UserGetByIdRequest) returns (UserGetByIdResponse);
 }

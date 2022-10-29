@@ -18,7 +18,7 @@ pub mod database {
 
     #[async_trait::async_trait]
     pub trait Driver<OfficialDbDriver> {
-        async fn connect(&mut self, host_uri: String) -> Result<(), ConnectionError>;
+        async fn connect(&mut self) -> Result<(), ConnectionError>;
         fn disconnect(&self) -> Result<(), ()>;
         fn get_client(&self) -> Result<Option<&OfficialDbDriver>, ()>;
         fn get_db_type(&self) -> Result<String, ()>;
