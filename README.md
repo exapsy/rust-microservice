@@ -12,7 +12,6 @@ Anything related to specific uses may be removed, but the general template shoul
 3. Change the [configuration](#Configurations) to your liking
 4. Change the [CHANGELOG.md](./CHANGELOG.md) every time there is a new version.
 5. Run `cargo run` :)
-6. **Note:** As a rule of thumb, _do not change template related files. You may change only use-specific related files._
 
 ## Requirements
 
