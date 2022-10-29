@@ -1,6 +1,3 @@
-use std::borrow::Borrow;
-use std::ptr::null;
-
 use async_trait::async_trait;
 use mongodb;
 use rocket::Request;
@@ -29,7 +26,7 @@ impl database::Driver<mongodb::Client> for Client {
     async fn connect(&mut self) -> Result<(), database::ConnectionError> {
         let uri = self.uri.as_ref()
             .expect("expected uri not to be empty");
-        let mut client_options = mongodb::options::ClientOptions::parse(uri)
+        let client_options = mongodb::options::ClientOptions::parse(uri)
             .await
             .expect("Failed to parse");
 

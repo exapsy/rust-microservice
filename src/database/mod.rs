@@ -1,6 +1,3 @@
-use async_trait::async_trait;
-use mongodb;
-
 pub mod mongo;
 
 pub mod database {

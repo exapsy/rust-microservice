@@ -1,4 +1,4 @@
-mod users;
+pub mod users;
 
 pub struct Services {
     pub users: users::UsersService,
