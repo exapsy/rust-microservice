@@ -7,7 +7,7 @@ Anything related to specific uses may be removed, but the general template shoul
 
 ## How to use this template
 
-1. Clone it `git clone https://gitlab.com/logifox/templates/rust/microservice.git`
+1. Clone it `git clone https://github.com/exapsy/rust-microservice.git`
 2. Make sure you acquire the [required dependencies](#Requirements)
 3. Change the [configuration](#Configurations) to your liking
 4. Change the [CHANGELOG.md](./CHANGELOG.md) every time there is a new version.
