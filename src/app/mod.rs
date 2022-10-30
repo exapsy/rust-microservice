@@ -10,6 +10,20 @@ pub struct App {
     pub services: services::Services,
 }
 
+impl Default for App {
+    fn default() -> Self {
+        App {
+            mongo_dbs: HashMap::new(),
+            services: services::Services {
+                db: None,
+                users: services::users::UsersService {
+                    db: None,
+                }
+            }
+        }
+    }
+}
+
 #[async_trait]
 impl<'r> FromRequest<'r> for App {
     type Error = ();

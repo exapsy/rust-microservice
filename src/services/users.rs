@@ -24,21 +24,24 @@ impl Serialize for User {
 }
 
 impl UsersService {
-    pub fn insert(&self, user: User) -> Result<(), ()> {
+    pub async fn insert(&self, user: User) -> Result<(), String> {
         match &self.db {
-            Some(DbType::MongoDb { ref db }) => self.insert_mongodb(user),
-            None => Err(()),
+            Some(DbType::MongoDb { ref db }) => self.insert_mongodb(user).await,
+            None => Err(String::from(("no database found"))),
         }
     }
 
-    fn insert_mongodb(&self, user: User) -> Result<(), ()> {
+    async fn insert_mongodb(&self, user: User) -> Result<(), String> {
         match &self.db {
             Some(DbType::MongoDb { ref db }) => {
                 let col = db.collection(DB_USER_TABLE);
-                let _ = col.insert_one(user, None);
+                let r = col.insert_one(user, None).await;
+                match r {
+                    Ok(_) => Ok(()),
+                    Err(err) => Err(format!("failed to insert user")),
+                }
             },
-            None => (),
-        };
-        Ok(())
+            _ => Err(String::from("no mongodb database found"))
+        }
     }
 }

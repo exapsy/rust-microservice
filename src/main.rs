@@ -1,6 +1,7 @@
 #[macro_use]
 extern crate rocket;
 
+use std::borrow::Borrow;
 use std::collections::HashMap;
 
 use tonic::{Response, Status, Request};
@@ -25,6 +26,7 @@ impl UsersService for MyUsersService {
 
 use crate::app::App;
 use crate::database::mongo::Client;
+use crate::services::users::DbType;
 use crate::users_service::users_service_server::UsersService;
 
 mod database;
@@ -34,38 +36,38 @@ mod services;
 pub fn init_app() -> App {
     dotenv().ok().expect("dotenv failed");
 
-    App {
-        mongo_dbs: HashMap::new(),
-        services: services::Services{
-            users: services::users::UsersService{
-                db: None,
-            }
-        }
-    }
+    Default::default()
 }
 
 #[get("/adduser")]
 async fn adduser(app: &State<App>) -> RawJson<String> {
-    let main_mongodb = app
-        .mongo_dbs
-        .get("main")
-        .unwrap();
+    // let main_mongodb = app
+    //     .mongo_dbs
+    //     .get("main")
+    //     .unwrap();
+    //
+    // let db = main_mongodb.client
+    //     .as_ref()
+    //     .expect("expected client reference")
+    //     .database("my-service-db");
+    // let collection = db
+    //     .collection("users");
+    //
+    // collection
+    //     .insert_one(
+    //         User {
+    //             username: String::from("lol"),
+    //         },
+    //         None
+    //     ).await
+    //     .expect("failed to insert");
 
-    let db = main_mongodb.client
-        .as_ref()
-        .expect("expected client reference")
-        .database("my-service-db");
-    let collection = db
-        .collection("users");
-
-    collection
-        .insert_one(
-            User {
-                username: String::from("lol"),
-            },
-            None
-        ).await
-        .expect("failed to insert");
+    let user = User {
+                username: String::from("dum dum"),
+            };
+    app.services.users.insert(user)
+        .await
+        .expect("failed to insert user");
 
     RawJson("{ \"response\": \"user added\" }".to_string())
 }
@@ -73,16 +75,27 @@ async fn adduser(app: &State<App>) -> RawJson<String> {
 #[rocket::main]
 async fn main() -> Result<(), Error> {
     let mut app = init_app();
-    let mongodb_uri = std::env::var("MONGO_URI").expect("");
-    let mongo_options = mongodb::options::ClientOptions::parse(mongodb_uri.to_string()).await.expect("failed to parse mongodb uri");
-    let client = mongodb::Client::with_options(mongo_options).expect("expected mongodb client");
+    let mongodb_uri = std::env::var("MONGO_URI")
+        .expect("expected to get a mongodb_uri");
+    let mongo_options = mongodb::options::ClientOptions::parse(mongodb_uri.to_string())
+        .await
+        .expect("failed to parse mongodb uri");
+    let client = mongodb::Client::with_options(mongo_options)
+        .expect("expected mongodb client");
     app.mongo_dbs.insert(
         String::from("main"),
         Client{
             uri: Option::from(mongodb_uri.to_string()),
-            client: Option::from(client),
-        }
+            client: Option::from(client.clone()),
+        },
     );
+    let db = &client.database("my-service").clone();
+    app.services = services::Services{
+        db: Option::from(db.clone()),
+        users: services::users::UsersService{
+            db: Option::from(DbType::MongoDb { db: db.clone() }),
+        },
+    };
 
     let _rocket = rocket::build()
         .manage(app)
