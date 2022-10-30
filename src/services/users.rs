@@ -1,11 +1,22 @@
+use rocket::futures::{TryFutureExt};
+use rocket::http::ext::IntoCollection;
 use serde::ser::{Serialize, SerializeStruct, Serializer};
 use rocket::serde;
-use crate::users_service::User;
+use crate::grpc::users_service::users_service::{User};
+use crate::services::{ERR_NO_DB_FOUND, ERR_NO_MONGODB_FOUND};
 
 static DB_USER_TABLE: &'static str = "users";
 
 pub enum DbType {
     MongoDb { db: mongodb::Database }
+}
+
+impl Clone for DbType {
+    fn clone(&self) -> Self {
+        match self {
+            DbType::MongoDb { db } => DbType::MongoDb { db: db.clone() }
+        }
+    }
 }
 
 pub struct UsersService {
@@ -24,10 +35,31 @@ impl Serialize for User {
 }
 
 impl UsersService {
+    pub fn mongodb(&self) -> Result<mongodb::Database, String> {
+        match &self.db {
+            Some(DbType::MongoDb { ref db }) => {
+                Ok(db.clone())
+            },
+            _ => Err(ERR_NO_MONGODB_FOUND.to_string())
+        }
+
+    }
+
+    pub async fn get_by_id(&self, id: String) -> Result<User, String> {
+        match &self.db {
+            Some(DbType::MongoDb {db }) => self.get_by_id_mongodb(id).await,
+            None => Err(ERR_NO_DB_FOUND.to_string()),
+        }
+    }
+    pub async fn get_by_id_mongodb(&self, id: String) -> Result<User, String> {
+        let db = self.mongodb()?;
+        // db.
+        todo!()
+    }
     pub async fn insert(&self, user: User) -> Result<(), String> {
         match &self.db {
             Some(DbType::MongoDb { ref db }) => self.insert_mongodb(user).await,
-            None => Err(String::from(("no database found"))),
+            None => Err(ERR_NO_DB_FOUND.to_string()),
         }
     }
 
@@ -38,10 +70,22 @@ impl UsersService {
                 let r = col.insert_one(user, None).await;
                 match r {
                     Ok(_) => Ok(()),
-                    Err(err) => Err(format!("failed to insert user")),
+                    Err(err) => Err(format!("failed to insert user: {:?}", err)),
                 }
             },
-            _ => Err(String::from("no mongodb database found"))
+            _ => Err(ERR_NO_MONGODB_FOUND.to_string())
         }
+    }
+}
+
+impl Clone for UsersService {
+    fn clone(&self) -> Self {
+        UsersService { db: self.db.clone() }
+    }
+}
+
+impl Default for UsersService {
+    fn default() -> Self {
+        UsersService { db: None }
     }
 }

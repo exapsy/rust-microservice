@@ -27,7 +27,8 @@ For more information take guidance from the [v0.5-rc documentation](https://rock
 
 ### .env (Environment variables)
 
-- `MONGO_URI` _(optional)_: used to specify the mongodb database URI. If not used then no MongoDB connection is set.
+- `DB_NAME`: is the name of the database that will be used for this service.
+- `MONGO_URI`: used to specify the mongodb database URI. If not used then no MongoDB connection is set.
 - `ROCKET_CONFIG`: used to specify the path for the rocket configuration. If not found, rocket will use the default values.
 
 ### Cargo.toml
