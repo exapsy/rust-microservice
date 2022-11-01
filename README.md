@@ -31,3 +31,7 @@ For more information take guidance from the [v0.5-rc documentation](https://rock
 - `DB_NAME`: is the name of the database that will be used for this service.
 - `MONGO_URI`: used to specify the mongodb database URI. If not used then no MongoDB connection is set.
 - `ROCKET_CONFIG`: **Rocket** is the **HTTP handler**. This value is used to specify the path for the rocket configuration. If not found, rocket will use the [default values](https://docs.rs/rocket/0.2.11/rocket/config/index.html#rockettoml).
+
+## Known bugs
+
+- Graceful shutdown doesn't work properly. Either kill it with `kill -9` (SIGKILL) or kill it twice so both HTTP and GRPC threads get killed.
