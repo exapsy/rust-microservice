@@ -27,9 +27,10 @@ For more information take guidance from the [v0.5-rc documentation](https://rock
 
 ### .env (Environment variables)
 
+- `GRPC_HOST`: the address to listen to for GRPC requests
 - `DB_NAME`: is the name of the database that will be used for this service.
 - `MONGO_URI`: used to specify the mongodb database URI. If not used then no MongoDB connection is set.
-- `ROCKET_CONFIG`: used to specify the path for the rocket configuration. If not found, rocket will use the default values.
+- `ROCKET_CONFIG`: **Rocket** is the **HTTP handler**. This value is used to specify the path for the rocket configuration. If not found, rocket will use the [default values](https://docs.rs/rocket/0.2.11/rocket/config/index.html#rockettoml).
 
 ### Cargo.toml
 

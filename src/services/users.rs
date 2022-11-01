@@ -1,8 +1,6 @@
-use rocket::futures::{TryFutureExt};
-use rocket::http::ext::IntoCollection;
 use serde::ser::{Serialize, SerializeStruct, Serializer};
 use rocket::serde;
-use crate::grpc::users_service::users_service::{User};
+use crate::grpc::users_service::{User};
 use crate::services::{ERR_NO_DB_FOUND, ERR_NO_MONGODB_FOUND};
 
 static DB_USER_TABLE: &'static str = "users";

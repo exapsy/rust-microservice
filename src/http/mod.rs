@@ -1,11 +1,12 @@
-use rocket::{Build, Error, Ignite, Response, Rocket};
+use rocket::{Error, Ignite, Rocket};
 use rocket::response::content::RawJson;
-use crate::grpc::users_service::users_service::User;
-use crate::services;
+
+use crate::{services};
+use crate::grpc::users_service::User;
 
 pub struct Handler {
     pub services: services::Services,
-    pub rocket: Option<rocket::Rocket<rocket::Build>>
+    pub rocket: Option<rocket::Rocket<rocket::Build>>,
 }
 
 pub struct HandlerInitOptions {
@@ -19,10 +20,13 @@ impl Handler {
             rocket: None,
         }
     }
-    pub async fn run(self) -> Result<Rocket<Ignite>, Error> {
+
+    pub async fn run(&self) -> Result<Rocket<Ignite>, Error> {
+        let services = self.services.clone();
+
         rocket::build()
-            .manage(State{
-                services: self.services.clone(),
+            .manage(State {
+                services,
             })
             .mount("/", routes![adduser])
             .launch()
@@ -37,7 +41,7 @@ pub struct State {
 #[get("/adduser")]
 async fn adduser(state: &rocket::State<State>) -> RawJson<String> {
     let user = User {
-        username: String::from("dum dum"),
+        username: "dum dum".to_string(),
     };
     state.services.users.insert(user)
         .await
@@ -45,4 +49,3 @@ async fn adduser(state: &rocket::State<State>) -> RawJson<String> {
 
     RawJson("{ \"response\": \"user added\" }".to_string())
 }
-

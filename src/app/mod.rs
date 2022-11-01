@@ -1,11 +1,34 @@
 use std::collections::HashMap;
+use std::env::VarError;
 
 use dotenv::dotenv;
-use rocket::{Error, Ignite, Request, Rocket};
+use rocket::{Request};
 use rocket::request::{FromRequest, Outcome};
 
-use crate::{database, grpc, services, http};
+use crate::{database, grpc, http, services};
+use crate::app::EnvVarKey::MongoURI;
 use crate::services::users::DbType;
+
+enum EnvVarKey {
+    MongoURI,
+    GrpcHost,
+    RocketConfig,
+    DbName,
+}
+
+impl EnvVarKey {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            EnvVarKey::MongoURI => "MONGO_URI",
+            EnvVarKey::GrpcHost => "GRPC_HOST",
+            EnvVarKey::RocketConfig => "ROCKET_CONFIG",
+            EnvVarKey::DbName => "DB_NAME",
+        }
+    }
+    pub fn value(&self) -> Result<String, VarError> {
+        std::env::var(self.as_str())
+    }
+}
 
 #[derive()]
 pub struct App {
@@ -28,7 +51,6 @@ impl App {
     }
 
     fn init_http(&mut self) -> Result<(), ()> {
-
         Ok(())
     }
 
@@ -46,22 +68,37 @@ impl App {
         let db = &client.database(database_name.as_str()).clone();
 
         self.services = services::Services {
-            db: Option::from(db.clone()),
+            db: Some(db.clone()),
             users: services::users::UsersService {
-                db: Option::from(DbType::MongoDb { db: db.clone() }),
+                db: Some(DbType::MongoDb { db: db.clone() }),
             },
         };
 
         Ok(())
     }
 
-    pub async fn run(&mut self) -> Result<Rocket<Ignite>, Error> {
-        println!("Starting server");
-        http::Handler::new(http::HandlerInitOptions {
-            services: self.services.clone(),
-        })
-            .run()
-            .await
+    pub async fn run(&mut self) -> Result<(), ()> {
+        println!("Starting app");
+        let services = self.services.clone();
+
+        let grpc_host = EnvVarKey::GrpcHost.value()
+            .expect("grpc host is not set");
+
+        let http_handler =
+            http::Handler::new(http::HandlerInitOptions {
+                services,
+            });
+        let grpc_handler =
+            grpc::Grpc::new(grpc::Options {
+                grpc_host,
+            });
+
+        let (rocket_res, grpc_res) = tokio::join!(
+                grpc_handler.run(),
+                http_handler.run(),
+        );
+
+        Ok(())
     }
 }
 

@@ -46,18 +46,9 @@ impl database::Driver<mongodb::Client> for Client {
         Ok(())
     }
     fn get_client(&self) -> Result<Option<&mongodb::Client>, ()> {
-        Ok(Option::from(&self.client))
+        Ok(self.client.as_ref())
     }
     fn get_db_type(&self) -> Result<String, ()> {
         Ok(DBTYPE.to_string())
-    }
-}
-
-impl Client{
-    pub fn get_uri(&self) -> Result<String, ()> {
-        match self.uri.clone() {
-            Some(uri) => Ok(uri),
-            None => Err(()),
-        }
     }
 }

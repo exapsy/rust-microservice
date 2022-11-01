@@ -7,7 +7,7 @@ mod services;
 mod grpc;
 mod http;
 
-#[rocket::main]
+#[tokio::main]
 async fn main() -> Result<(), ()> {
     let _ = app::App::new()
         .init()
